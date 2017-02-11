@@ -4,27 +4,40 @@ var webMidiApi = require('web-midi-api'),
     serialPortApi = require('serialport'),
     midiPort = null,
     serialPort = null,
-    notes = [36, 37, 38, 39];
+    notes = [49, 42, 38, 43, 51, 36];
 
 serialPortApi.list(function(error, serialPortInfos) {
   serialPortInfos.forEach(function(serialPortInfo){
     if (serialPortInfo.manufacturer == "Arduino LLC (www.arduino.cc)") {
       serialPort = new serialPortApi(serialPortInfo.comName, {
-        baudRate: 38400,
-        parser: serialPortApi.parsers.byteLength(4)
+        baudRate: 57600,
+        parser: serialPortApi.parsers.byteLength(13)
       }, function(error) {
         if (error) {
           console.log("ERROR: error opening serial port: " + error);
           process.exit(1);
         } else {
           serialPort.on("data", function(data) {
-            var slot = data.readUInt16BE(0),
-            	vel = data.readUInt16BE(2),
-            	adjustedVel = Math.round(vel / 1023 * 127);
+            //console.log(data.length);
+            //for (var i=0; i<data.length; i++) {console.log(data.readUInt8(i));}
+            var slot = data.readUInt8(0),
+              vel = data.readUInt16BE(1),
+              noteStart = data.readUInt32BE(3),
+              sensitivity = data.readUInt16BE(7),
+              relevantSamples = data.readUInt16BE(9),
+              irrelevantNoise = data.readUInt16BE(11),
+              adjustedVel = Math.round(vel / 1023 * 127);
             if (midiPort) {
               midiPort.send([0x99, notes[slot], adjustedVel]);
               //midiPort.send([0x89, notes[slot], adjustedVel]);
             }
+            console.log(
+              "slot = " + slot + 
+              " velocity = " + vel + 
+              " noteStart = " + noteStart + 
+              " sensitivity " + sensitivity + 
+              " relevantSamples = " + relevantSamples + 
+              " irrelevantNoise = " + irrelevantNoise);
           });
         }
       });

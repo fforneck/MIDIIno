@@ -1,4 +1,4 @@
-#define NUMPADS 1  // number of pads
+#define NUMPADS 6  // number of pads
 
 int val;
 String inputString = "";
@@ -46,7 +46,7 @@ void loop() {
         }
         sampleCount[piezo]++;
         if (sampleCount[piezo] >= relevantSamples[piezo]) {
-          Serial.print(piezo);
+          /*Serial.print(piezo);
           Serial.print(";");
           Serial.print(peak[piezo]);
           Serial.print(";");
@@ -57,22 +57,22 @@ void loop() {
           Serial.print(relevantSamples[piezo]);
           Serial.print(";");
           Serial.print(irrelevantNoise[piezo]);
-          Serial.println();
-          /*byte buf[11];
+          Serial.println();*/
+          byte buf[13];
           buf[ 0] = piezo;
-          buf[ 1] = lowByte(peak[piezo]));
-          buf[ 2] = highByte(peak[piezo]));
-          buf[ 3] = (byte) lastNoteStart[piezo];
-          buf[ 4] = (byte) lastNoteStart[piezo] >> 8;
-          buf[ 5] = (byte) lastNoteStart[piezo] >> 16;
-          buf[ 6] = (byte) lastNoteStart[piezo] >> 24;
-          buf[ 7] = lowByte(piezoThresholds[piezo]));
-          buf[ 8] = highByte(piezoThresholds[piezo]));
-          buf[ 9] = lowByte(relevantSamples[piezo]));
-          buf[10] = highByte(relevantSamples[piezo]));
-          buf[11] = lowByte(irrelevantNoise[piezo]));
-          buf[12] = highByte(irrelevantNoise[piezo]));
-          Serial.write(buf, 6);*/
+          buf[ 1] = highByte(peak[piezo]);
+          buf[ 2] = lowByte(peak[piezo]);
+          buf[ 3] = (byte) (lastNoteStart[piezo] >> 24);
+          buf[ 4] = (byte) (lastNoteStart[piezo] >> 16);
+          buf[ 5] = (byte) (lastNoteStart[piezo] >> 8);
+          buf[ 6] = (byte) lastNoteStart[piezo];
+          buf[ 7] = highByte(piezoThresholds[piezo]);
+          buf[ 8] = lowByte(piezoThresholds[piezo]);
+          buf[ 9] = highByte(relevantSamples[piezo]);
+          buf[10] = lowByte(relevantSamples[piezo]);
+          buf[11] = highByte(irrelevantNoise[piezo]);
+          buf[12] = lowByte(irrelevantNoise[piezo]);
+          Serial.write(buf, 13);
           state[piezo] = 2;
         }
         break;
@@ -90,7 +90,7 @@ byte bytesRead = 0;
 void serialEvent(){  
   while (Serial.available()) {
     // get the new byte:
-    char inChar = (char)Serial.read();
+    /*char inChar = (char)Serial.read();
     // add it to the inputString:
     inputString += inChar;
     // if the incoming character is a newline, set a flag
@@ -112,15 +112,15 @@ void serialEvent(){
       Serial.print(" irrelevantNoise ");
       Serial.println(irrelevantNoise[piezo]);
       inputString = "";
-    }
+    }*/
 
     
-    /*inputBytes[bytesRead++] = Serial.read();
+    inputBytes[bytesRead++] = Serial.read();
     if (bytesRead == 7) {
       piezoThresholds[inputBytes[0]] = (unsigned int) (inputBytes[1] << 8) | inputBytes[2];
       relevantSamples[inputBytes[0]] = (unsigned int) (inputBytes[3] << 8) | inputBytes[4];
       irrelevantNoise[inputBytes[0]] = (unsigned int) (inputBytes[5] << 8) | inputBytes[6];
       bytesRead = 0;
-    }*/
+    }
   }
 }
