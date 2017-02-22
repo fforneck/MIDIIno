@@ -9,35 +9,51 @@ var webMidiApi = require('web-midi-api'),
 serialPortApi.list(function(error, serialPortInfos) {
   serialPortInfos.forEach(function(serialPortInfo){
     if (serialPortInfo.manufacturer == "Arduino LLC (www.arduino.cc)") {
+	  //console.log(serialPortInfo.comName);
       serialPort = new serialPortApi(serialPortInfo.comName, {
         baudRate: 57600,
-        parser: serialPortApi.parsers.byteLength(13)
+        parser: serialPortApi.parsers.byteLength(15)
       }, function(error) {
         if (error) {
           console.log("ERROR: error opening serial port: " + error);
           process.exit(1);
         } else {
           serialPort.on("data", function(data) {
+            var start = process.hrtime();
+            /*if (data.readUInt16BE(7) > 0) {
+              serialPort.write(Buffer.from([0x01]), function(error){
+                if (error) {
+                  console.log('error sending data back:');
+                  console.log(error);
+                }
+              });              
+            }*/
             //console.log(data.length);
             //for (var i=0; i<data.length; i++) {console.log(data.readUInt8(i));}
-            var slot = data.readUInt8(0),
+            var sensor = data.readUInt8(0),
               vel = data.readUInt16BE(1),
               noteStart = data.readUInt32BE(3),
-              sensitivity = data.readUInt16BE(7),
+              threshold = data.readUInt16BE(7),
               relevantSamples = data.readUInt16BE(9),
               irrelevantNoise = data.readUInt16BE(11),
-              adjustedVel = Math.round(vel / 1023 * 127);
+              difference = data.readUInt16BE(13),
+              adjustedVel = Math.round((vel - threshold) / (1023 - threshold) * 127);
             if (midiPort) {
-              midiPort.send([0x99, notes[slot], adjustedVel]);
-              //midiPort.send([0x89, notes[slot], adjustedVel]);
+              var step1 = process.hrtime();
+              console.log((step1[0] - start[0]) + " " + ((step1[1] - start[1]) / 1000000));
+              midiPort.send([0x99, notes[sensor], adjustedVel]);
+              var step2 = process.hrtime();
+              console.log((step2[0] - step1[0]) + " " + ((step2[1] - step1[1]) / 1000000));
+              //midiPort.send([0x89, notes[sensor], adjustedVel]);
             }
             console.log(
-              "slot = " + slot + 
+              "sensor = " + sensor + 
               " velocity = " + vel + 
               " noteStart = " + noteStart + 
-              " sensitivity " + sensitivity + 
+              " threshold " + threshold + 
               " relevantSamples = " + relevantSamples + 
-              " irrelevantNoise = " + irrelevantNoise);
+              " irrelevantNoise = " + irrelevantNoise +
+              " difference = " + difference);
           });
         }
       });
@@ -56,7 +72,7 @@ function onMIDIFailure(msg){
 function onMIDISuccess(midiAccess){
   console.log('TRACE: onMIDISuccess');
   midiAccess.outputs.forEach(function(port){
-    //console.log('id:', port.id, 'manufacturer:', port.manufacturer, 'name:', port.name, 'version:', port.version);
+    console.log('id:', port.id, 'manufacturer:', port.manufacturer, 'name:', port.name, 'version:', port.version);
     if (port.name == "Microsoft GS Wavetable Synth") {
       midiPort = port;
       port.open();

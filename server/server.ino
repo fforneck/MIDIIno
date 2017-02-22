@@ -2,6 +2,7 @@
 
 int val;
 String inputString = "";
+unsigned long lastSent;
 
 // config
 unsigned int piezoThresholds[NUMPADS];
@@ -58,7 +59,7 @@ void loop() {
           Serial.print(";");
           Serial.print(irrelevantNoise[piezo]);
           Serial.println();*/
-          byte buf[13];
+          byte buf[15];
           buf[ 0] = piezo;
           buf[ 1] = highByte(peak[piezo]);
           buf[ 2] = lowByte(peak[piezo]);
@@ -72,12 +73,16 @@ void loop() {
           buf[10] = lowByte(relevantSamples[piezo]);
           buf[11] = highByte(irrelevantNoise[piezo]);
           buf[12] = lowByte(irrelevantNoise[piezo]);
-          Serial.write(buf, 13);
+          unsigned int difference = millis() - lastNoteStart[piezo];
+          buf[13] = highByte(difference);
+          buf[14] = lowByte(difference);
+          lastSent = micros();
+          Serial.write(buf, 15);
           state[piezo] = 2;
         }
         break;
       case 2:
-        if (lastNoteStart[piezo] + irrelevantNoise[piezo] <= millis()) {
+        if (millis() >= lastNoteStart[piezo] + irrelevantNoise[piezo]) {
           state[piezo] = 0;
         }
         break;
@@ -89,8 +94,8 @@ byte inputBytes[7];
 byte bytesRead = 0;
 void serialEvent(){  
   while (Serial.available()) {
-    // get the new byte:
-    /*char inChar = (char)Serial.read();
+    /*// get the new byte:
+    char inChar = (char)Serial.read();
     // add it to the inputString:
     inputString += inChar;
     // if the incoming character is a newline, set a flag
@@ -122,5 +127,24 @@ void serialEvent(){
       irrelevantNoise[inputBytes[0]] = (unsigned int) (inputBytes[5] << 8) | inputBytes[6];
       bytesRead = 0;
     }
+    
+    /*unsigned long diff = micros() - lastSent;
+    byte buf[15];
+    buf[ 0] = 0;
+    buf[ 1] = 0;
+    buf[ 2] = 0;
+    buf[ 3] = (byte) (diff >> 24);
+    buf[ 4] = (byte) (diff >> 16);
+    buf[ 5] = (byte) (diff >> 8);
+    buf[ 6] = (byte) diff;
+    buf[ 7] = 0;
+    buf[ 8] = 0;
+    buf[ 9] = 0;
+    buf[10] = 0;
+    buf[11] = 0;
+    buf[12] = 0;
+    buf[13] = 0;
+    buf[14] = 0;
+    Serial.write(buf, 15);*/
   }
 }
