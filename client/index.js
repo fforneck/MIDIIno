@@ -4,7 +4,7 @@ var webMidiApi = require('web-midi-api'),
     serialPortApi = require('serialport'),
     midiPort = null,
     serialPort = null,
-    notes = [49, 42, 38, 43, 51, 36];
+    notes = [39, 43, 51, 42, 49, 36];
 
 serialPortApi.list(function(error, serialPortInfos) {
   serialPortInfos.forEach(function(serialPortInfo){
@@ -73,9 +73,11 @@ function onMIDISuccess(midiAccess){
   console.log('TRACE: onMIDISuccess');
   midiAccess.outputs.forEach(function(port){
     console.log('id:', port.id, 'manufacturer:', port.manufacturer, 'name:', port.name, 'version:', port.version);
-    if (port.name == "Microsoft GS Wavetable Synth") {
+    if (port.name == "LoopBe Internal MIDI") {
+    //if (port.name == "Microsoft GS Wavetable Synth") {
       midiPort = port;
       port.open();
+      midiPort.send([0x99, notes[0], 127]);
       //scale(0x1b, 0x7f);
     }
   });
