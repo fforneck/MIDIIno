@@ -2,58 +2,41 @@
 
 var webMidiApi = require('web-midi-api'),
     serialPortApi = require('serialport'),
+    express = require('express'),
+    app = express(),
+    expressWs = require('express-ws')(app),
     midiPort = null,
     serialPort = null,
-    notes = [39, 43, 51, 42, 49, 36];
+    notes = [39, 43, 51, 42, 49, 36],
+    threshold = [50, 50, 50, 50, 50, 50],
+    gain = [50, 50, 50, 50, 50, 50],
+    HTTP_PORT = 3000;
 
+console.log('Listing serial ports...');
 serialPortApi.list(function(error, serialPortInfos) {
   serialPortInfos.forEach(function(serialPortInfo){
+    console.log('Port=' + serialPortInfo.manufacturer);
     if (serialPortInfo.manufacturer == "Arduino LLC (www.arduino.cc)") {
-	  //console.log(serialPortInfo.comName);
+	  console.log('Opening serial port...');
       serialPort = new serialPortApi(serialPortInfo.comName, {
         baudRate: 57600,
-        parser: serialPortApi.parsers.byteLength(15)
+        parser: serialPortApi.parsers.byteLength(3)
       }, function(error) {
         if (error) {
           console.log("ERROR: error opening serial port: " + error);
           process.exit(1);
         } else {
+          console.log('Serial port is open.');
           serialPort.on("data", function(data) {
-            var start = process.hrtime();
-            /*if (data.readUInt16BE(7) > 0) {
-              serialPort.write(Buffer.from([0x01]), function(error){
-                if (error) {
-                  console.log('error sending data back:');
-                  console.log(error);
-                }
-              });              
-            }*/
-            //console.log(data.length);
-            //for (var i=0; i<data.length; i++) {console.log(data.readUInt8(i));}
             var sensor = data.readUInt8(0),
               vel = data.readUInt16BE(1),
-              noteStart = data.readUInt32BE(3),
-              threshold = data.readUInt16BE(7),
-              relevantSamples = data.readUInt16BE(9),
-              irrelevantNoise = data.readUInt16BE(11),
-              difference = data.readUInt16BE(13),
-              adjustedVel = Math.round((vel - threshold) / (1023 - threshold) * 127);
+              adjustedVel = Math.min(127, Math.round((vel - threshold[sensor]) / (1023 - threshold[sensor]) / 50 * gain[sensor] * 127));
             if (midiPort) {
-              var step1 = process.hrtime();
-              console.log((step1[0] - start[0]) + " " + ((step1[1] - start[1]) / 1000000));
               midiPort.send([0x99, notes[sensor], adjustedVel]);
-              var step2 = process.hrtime();
-              console.log((step2[0] - step1[0]) + " " + ((step2[1] - step1[1]) / 1000000));
-              //midiPort.send([0x89, notes[sensor], adjustedVel]);
             }
             console.log(
               "sensor = " + sensor + 
-              " velocity = " + vel + 
-              " noteStart = " + noteStart + 
-              " threshold " + threshold + 
-              " relevantSamples = " + relevantSamples + 
-              " irrelevantNoise = " + irrelevantNoise +
-              " difference = " + difference);
+              " velocity = " + vel);
           });
         }
       });
@@ -64,36 +47,29 @@ serialPortApi.list(function(error, serialPortInfos) {
   });
 });
 
-function onMIDIFailure(msg){
-  console.log('Failed to get MIDI access - ' + msg);
-  process.exit(1);
-}
-
-function onMIDISuccess(midiAccess){
-  console.log('TRACE: onMIDISuccess');
+console.log('Requesting MIDI access...')
+webMidiApi.requestMIDIAccess().then(function(midiAccess){
+  console.log('Listing MIDI outputs...');
   midiAccess.outputs.forEach(function(port){
     console.log('id:', port.id, 'manufacturer:', port.manufacturer, 'name:', port.name, 'version:', port.version);
     if (port.name == "LoopBe Internal MIDI") {
     //if (port.name == "Microsoft GS Wavetable Synth") {
-      midiPort = port;
+      console.log('Opening MIDI port...');
       port.open();
-      midiPort.send([0x99, notes[0], 127]);
-      //scale(0x1b, 0x7f);
+      console.log('MIDI port is ready.');
+      midiPort = port;
     }
   });
-}
+}, function(msg){
+  console.log('Failed to get MIDI access - ' + msg);
+  process.exit(1);
+});
 
-//function scale(note, velocity) {
-//  console.log('Note: ' + note);
-//  midiPort.send([0x99, note, velocity]);
-//  setTimeout(function(){
-//    //midiPort.send([0x89, note, velocity]);
-//    if (note < 91) {
-//      scale(note + 1, velocity);
-//    } else {
-//      process.exit(0);
-//    }
-//  }, 700);
-//}
+console.log('Setting app to server static content from public folder...')
+app.use(express.static('public'));
 
-webMidiApi.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
+
+console.log('Opening HTTP port ' + HTTP_PORT + '...')
+app.listen(HTTP_PORT, function () {
+  console.log('App listening on port ' + HTTP_PORT + '!')
+})
