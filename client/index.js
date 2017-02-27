@@ -5,11 +5,11 @@ var webMidiApi = require('web-midi-api'),
     express = require('express'),
     app = express(),
     expressWs = require('express-ws')(app),
+    Storage = require('node-storage'),
+    store = new Storage('./storage.json'),
     midiPort = null,
     serialPort = null,
-    notes = [39, 43, 51, 42, 49, 36],
-    threshold = [50, 50, 50, 50, 50, 50],
-    gain = [50, 50, 50, 50, 50, 50],
+    slots = store.get('slots'),
     HTTP_PORT = 3000;
 
 console.log('Listing serial ports...');
@@ -27,12 +27,18 @@ serialPortApi.list(function(error, serialPortInfos) {
           process.exit(1);
         } else {
           console.log('Serial port is open.');
+          console.log('Setting sensor parameters...');
+          slots.forEach(function(slot){
+            var buf = new Buffer.from([slot.threshold, slot.relevantSamples, slot.irrelevantNoise]);
+            serialPort.write(buf);
+          });
+
           serialPort.on("data", function(data) {
             var sensor = data.readUInt8(0),
               vel = data.readUInt16BE(1),
-              adjustedVel = Math.min(127, Math.round((vel - threshold[sensor]) / (1023 - threshold[sensor]) / 50 * gain[sensor] * 127));
+              adjustedVel = Math.min(127, Math.round((vel - slot[sensor].threshold) / (1023 - slot[sensor].threshold) / 50 * slot[sensor].gain * 127));
             if (midiPort) {
-              midiPort.send([0x99, notes[sensor], adjustedVel]);
+              midiPort.send([0x99, slot[sensor].note, adjustedVel]);
             }
             console.log(
               "sensor = " + sensor + 
@@ -40,6 +46,7 @@ serialPortApi.list(function(error, serialPortInfos) {
           });
         }
       });
+
       serialPort.on("error", function(errorMsg){
         console.log("ERROR: " + errorMsg);
       });
