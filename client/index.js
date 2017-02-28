@@ -5,6 +5,7 @@ var webMidiApi = require('web-midi-api'),
     express = require('express'),
     app = express(),
     expressWs = require('express-ws')(app),
+    bodyParser = require('body-parser'),
     Storage = require('node-storage'),
     store = new Storage('./storage.json'),
     midiPort = null,
@@ -29,8 +30,7 @@ serialPortApi.list(function(error, serialPortInfos) {
           console.log('Serial port is open.');
           console.log('Setting sensor parameters...');
           slots.forEach(function(slot){
-            var buf = new Buffer.from([slot.threshold, slot.relevantSamples, slot.irrelevantNoise]);
-            serialPort.write(buf);
+            communicateChange(slot.id, slot.threshold, slot.relevantSamples, slot.irrelevantNoise);
           });
 
           serialPort.on("data", function(data) {
@@ -75,6 +75,25 @@ webMidiApi.requestMIDIAccess().then(function(midiAccess){
 console.log('Setting app to server static content from public folder...')
 app.use(express.static('public'));
 
+app.use(bodyParser.urlencoded({extended: true}));
+
+app.get('/slots', function(req, res) {
+  res.send(JSON.stringify(slots));
+});
+
+app.put('/slot/:id', function(req, res) {
+  console.log(req.body);
+  /*slots[req.params.slot].threshold = req.params.threshold;
+  slots[req.params.slot].relevantSamples = req.params.relevantSamples;
+  slots[req.params.slot].irrelevantNoise = req.params.irrelevantNoise;
+  communicateChange(req.params.slot, req.params.threshold, req.params.relevantSamples, req.params.irrelevantNoise);*/
+  res.send(JSON.stringify({success: true}));
+});
+
+function communicateChange(slot, threshold, relevantSamples, irrelevantNoise) {
+  var buf = new Buffer.from([slot, threshold, relevantSamples, irrelevantNoise]);
+  serialPort.write(buf);
+}
 
 console.log('Opening HTTP port ' + HTTP_PORT + '...')
 app.listen(HTTP_PORT, function () {

@@ -13,10 +13,12 @@
     "url": "https://github.com/fforneck/MIDIIno.git"
   },
   "dependencies": {
+    "body-parser": "^1.16.1",
     "express": "^4.14.0",
     "express-ws": "^2.0.0",
     "node-storage": "0.0.7",
     "serialport": "^4.0.7",
     "web-midi-api": "^1.4.4"
-  }
+  },
+  "devDependencies": {}
 }
