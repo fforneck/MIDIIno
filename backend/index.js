@@ -73,7 +73,7 @@ webMidiApi.requestMIDIAccess().then(function(midiAccess){
 });
 
 console.log('Setting app to server static content from public folder...')
-app.use(express.static('public'));
+app.use(express.static('../frontend'));
 
 app.use(bodyParser.urlencoded({extended: true}));
 
