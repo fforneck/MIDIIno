@@ -73,26 +73,26 @@ webMidiApi.requestMIDIAccess().then(function(midiAccess){
 });
 
 console.log('Setting app to server static content from public folder...')
-app.use(express.static('../frontend/src'));
+app.use(express.static('../frontend/dist'));
 
 app.use(bodyParser.urlencoded({extended: true}));
 
-app.get('/slots', function(req, res) {
+app.get('/pads', function(req, res) {
   res.send(JSON.stringify(slots));
 });
 
-app.put('/slot/:id', function(req, res) {
+app.put('/pad/:id', function(req, res) {
   console.log(req.body);
-  /*slots[req.params.slot].threshold = req.params.threshold;
-  slots[req.params.slot].relevantSamples = req.params.relevantSamples;
-  slots[req.params.slot].irrelevantNoise = req.params.irrelevantNoise;
-  communicateChange(req.params.slot, req.params.threshold, req.params.relevantSamples, req.params.irrelevantNoise);*/
-  res.send(JSON.stringify({success: true}));
+  slots[req.params.id] = req.body;
+  communicateChange(req.params.id, req.body.threshold, req.body.relevantSamples, req.body.irrelevantNoise);
 });
 
 function communicateChange(slot, threshold, relevantSamples, irrelevantNoise) {
-  var buf = new Buffer.from([slot, threshold, relevantSamples, irrelevantNoise]);
-  serialPort.write(buf);
+  console.log('Communicating changes: slot=' + slot + ' threshold=' + threshold + ' relevantSamples=' + relevantSamples + ' irrelevantNoise=' + irrelevantNoise);
+  if (serialPort) {
+    var buf = new Buffer.from([slot, threshold, relevantSamples, irrelevantNoise]);
+    serialPort.write(buf);	  
+  }
 }
 
 console.log('Opening HTTP port ' + HTTP_PORT + '...')

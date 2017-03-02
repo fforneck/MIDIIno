@@ -1,0 +1,21 @@
+<div>
+	<ul>
+		<li>
+			<select name='note' ngModel>
+				<option *ngFor="let note of notes" [ngValue]="number">
+					{{note.number}} - {{note.name}}
+				</option>
+			</select>
+		</li>
+		<li><app-potentiometer [name]='threshold'       [value]='pad.threshold'       [min]=0 [max]=1023 (notify)='onNotify($event)'></app-potentiometer></li>
+		<li><app-potentiometer [name]='relevantSamples' [value]='pad.relevantSamples' [min]=0 [max]=100  (notify)='onNotify($event)'></app-potentiometer></li>
+		<li><app-potentiometer [name]='irrelevantNoise' [value]='pad.irrelevantNoise' [min]=0 [max]=1000 (notify)='onNotify($event)'></app-potentiometer></li>
+		<li><app-potentiometer [name]='gain'            [value]='pad.gain'            [min]=0 [max]=100  (notify)='onNotify($event)'></app-potentiometer></li>
+		<li>
+			<div>
+				<label>Color</label>
+				<input type='color' [ngModel]='pad.color' (ngModelChange)="colorChange($event)">
+			</div>
+		</li>
+	</ul>
+</div>
