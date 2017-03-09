@@ -1,4 +1,15 @@
-<div>
-	<label>{{name}}</label>
-	<input type="number" min="{{min}}" max="{{max}}" [ngModel]="value" (ngModelChange)="change($event)">
+<div class="containerX">
+	<div fxLayout="column" fxLayoutAlign="start center">
+		<label fxFlex>{{name}}</label>
+		<md-slider 
+			vertical 
+			step="1" 
+			tickInterval="1" 
+			thumbLabel  
+			fxFlex
+			[max]='max' 
+			[min]='min' 
+			[ngModel]='value' 
+			(ngModelChange)="change($event)"></md-slider>
+	</div>
 </div>

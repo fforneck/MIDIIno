@@ -1,21 +1,61 @@
-<div>
-	<ul>
-		<li>
-			<select name='note' ngModel>
-				<option *ngFor="let note of notes" [ngValue]="number">
-					{{note.number}} - {{note.name}}
-				</option>
-			</select>
-		</li>
-		<li><app-potentiometer [name]='threshold'       [value]='pad.threshold'       [min]=0 [max]=1023 (notify)='onNotify($event)'></app-potentiometer></li>
-		<li><app-potentiometer [name]='relevantSamples' [value]='pad.relevantSamples' [min]=0 [max]=100  (notify)='onNotify($event)'></app-potentiometer></li>
-		<li><app-potentiometer [name]='irrelevantNoise' [value]='pad.irrelevantNoise' [min]=0 [max]=1000 (notify)='onNotify($event)'></app-potentiometer></li>
-		<li><app-potentiometer [name]='gain'            [value]='pad.gain'            [min]=0 [max]=100  (notify)='onNotify($event)'></app-potentiometer></li>
-		<li>
-			<div>
-				<label>Color</label>
-				<input type='color' [ngModel]='pad.color' (ngModelChange)="colorChange($event)">
+<md-card class="card-demo">
+	<md-card-title>Pad #{{pad.id}}</md-card-title>
+	<md-card-content>
+		<div class="containerX">
+			<div class="colorNested box">
+				<div fxLayout="column">
+					<div fxLayout="row" fxLayout.sm="colum" fxLayoutAlign="space-around">
+						<div fxFlex fxLayoutAlign="space-around">
+							<div fxLayout="column">	
+								<label>Note</label>
+								<select [ngModel]="pad.note" name="note">
+									<option [ngValue]="note.number" *ngFor="let note of notes">
+										{{note.number}} - {{note.name}}
+									</option>
+								</select>
+							</div>
+						</div>
+						<div fxFlex fxLayoutAlign="space-around">
+							<app-potentiometer 
+								name='Threshold' 
+								[value]='pad.threshold'
+								[min]=0 
+								[max]=1023 
+								(notify)='onNotify($event)'></app-potentiometer>
+						</div>
+						<div fxFlex fxLayoutAlign="space-around">
+							<app-potentiometer 
+								name='Relevant Samples' 
+								[value]='pad.relevantSamples' 
+								[min]=0 
+								[max]=100
+								(notify)='onNotify($event)'></app-potentiometer>
+						</div>
+						<div fxFlex fxLayoutAlign="space-around">
+							<app-potentiometer
+								name='Irrelevant Noise' 
+								[value]='pad.irrelevantNoise' 
+								[min]=0 
+								[max]=1000 
+								(notify)='onNotify($event)'></app-potentiometer>
+						</div>
+						<div fxFlex fxLayoutAlign="space-around">
+							<app-potentiometer 
+								name='Gain'            
+								[value]='pad.gain'            
+								[min]=0 
+								[max]=100  
+								(notify)='onNotify($event)'></app-potentiometer>
+						</div>
+						<div fxFlex fxLayoutAlign="space-around">				
+							<div fxLayout="column">	
+								<label>Color</label>
+								<input type='color' placeholder="Color" [ngModel]='pad.color' (ngModelChange)="colorChange($event)">
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
-		</li>
-	</ul>
-</div>
+		</div>
+	</md-card-content>
+</md-card>
