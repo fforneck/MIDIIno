@@ -24,12 +24,12 @@ export class PadService {
   constructor(private http: Http) { }
   
   getPads(): Promise<Pad[]> {
-    /*return this.http.get(`${this.url}/pads`)
+    return this.http.get(`${this.url}/pads`)
                .toPromise()
                .then(response => response.json() as Pad[])
-               .catch(this.handleError);*/
+               .catch(this.handleError);
     // for testing without the backend
-    return Promise.resolve(PADS);
+    //return Promise.resolve(PADS);
   }
   
   setPad(pad: Pad): Promise<Pad> {
