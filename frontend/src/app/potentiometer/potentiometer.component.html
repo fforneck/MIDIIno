@@ -1,15 +1,12 @@
-<div class="containerX">
-	<div fxLayout="column" fxLayoutAlign="start center">
-		<label fxFlex>{{name}}</label>
-		<md-slider 
-			vertical 
-			step="1" 
-			tickInterval="1" 
-			thumbLabel  
-			fxFlex
-			[max]='max' 
-			[min]='min' 
-			[ngModel]='value' 
-			(ngModelChange)="change($event)"></md-slider>
-	</div>
+<div fxLayout="column" fxLayoutAlign="start center">
+	<label>{{name}}</label>
+	<md-slider 
+		vertical 
+		step="1" 
+		tickInterval="1" 
+		thumbLabel
+		[max]='max' 
+		[min]='min' 
+		[ngModel]='value' 
+		(ngModelChange)="change($event)"></md-slider>
 </div>

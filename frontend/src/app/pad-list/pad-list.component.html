@@ -1,5 +1,3 @@
-<div class="containerX">
-	<div fxLayout="column">
-		<app-pad-pane *ngFor="let pad of pads" [pad]='pad' fxFlex></app-pad-pane>
-	</div>
+<div fxLayout="row" fxLayout.md="column" fxLayoutAlign="space-around start" fxLayoutWrap>
+	<app-pad-pane *ngFor="let pad of pads" [pad]='pad'></app-pad-pane>
 </div>
