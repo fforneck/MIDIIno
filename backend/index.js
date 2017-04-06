@@ -30,15 +30,15 @@ serialPortApi.list(function(error, serialPortInfos) {
           console.log('Serial port is open.');
           console.log('Setting sensor parameters...');
           slots.forEach(function(slot){
-            communicateChange(slot.id, slot.threshold, slot.relevantSamples, slot.irrelevantNoise);
+            communicateChange(slot);
           });
 
           serialPort.on("data", function(data) {
             var sensor = data.readUInt8(0),
               vel = data.readUInt16BE(1),
-              adjustedVel = Math.min(127, Math.round((vel - slot[sensor].threshold) / (1023 - slot[sensor].threshold) / 50 * slot[sensor].gain * 127));
+              adjustedVel = Math.min(127, Math.round((vel - slots[sensor].threshold) / (1023 - slots[sensor].threshold) / 50 * slots[sensor].gain * 127));
             if (midiPort) {
-              midiPort.send([0x99, slot[sensor].note, adjustedVel]);
+              midiPort.send([0x99, slots[sensor].note, adjustedVel]);
             }
             console.log(
               "sensor = " + sensor + 
@@ -87,10 +87,14 @@ app.put('/pad/:id', function(req, res) {
   communicateChange(req.params.id, req.body.threshold, req.body.relevantSamples, req.body.irrelevantNoise);
 });
 
-function communicateChange(slot, threshold, relevantSamples, irrelevantNoise) {
-  console.log('Communicating changes: slot=' + slot + ' threshold=' + threshold + ' relevantSamples=' + relevantSamples + ' irrelevantNoise=' + irrelevantNoise);
+function communicateChange(slot) {
+  console.log('Communicating changes: id=' + slot.id + ' threshold=' + slot.threshold + ' relevantSamples=' + slot.relevantSamples + ' irrelevantNoise=' + slot.irrelevantNoise);
   if (serialPort) {
-    var buf = new Buffer.from([slot, threshold, relevantSamples, irrelevantNoise]);
+    var buf = new Buffer.alloc(7);
+    buf.writeUInt8(slot.id, 0);
+    buf.writeUInt16BE(slot.threshold, 1);
+    buf.writeUInt16BE(slot.relevantSamples, 3);
+    buf.writeUInt16BE(slot.irrelevantNoise, 5);
     serialPort.write(buf);	  
   }
 }
