@@ -1,4 +1,4 @@
-#define NUMPADS 6  // number of pads
+#define NUMPADS 5  // number of pads
 
 // config
 unsigned int piezoThresholds[NUMPADS];
